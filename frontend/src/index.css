@@ -1,0 +1,200 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 29 57% 46%; /* #B87333 Copper/Gold */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 92%; /* #EAEAEA Tertiary/Grey */
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 29 57% 46%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 29 57% 46%;
+
+    --radius: 0px;
+
+    /* MD3-style Surface Colors */
+    --surface: 0 0% 100%;
+    --surface-container: 0 0% 98%;
+    --surface-container-lowest: 0 0% 100%;
+    --on-surface: 0 0% 10%;
+    --outline: 0 0% 50%;
+    --outline-variant: 0 0% 90%;
+
+    --font-heading: "Noto Serif", serif;
+    --font-headline: "Noto Serif", serif;
+    --font-body: "Inter", system-ui, sans-serif;
+    --font-label: "Space Grotesk", sans-serif;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+  .font-headline {
+    font-family: var(--font-headline);
+  }
+  .font-body {
+    font-family: var(--font-body);
+  }
+  .font-label {
+    font-family: var(--font-label);
+  }
+  .tracking-luxury {
+    letter-spacing: 0.15em;
+  }
+  .tracking-wide-luxury {
+    letter-spacing: 0.25em;
+  }
+  .glass-nav {
+    @apply bg-white/70 backdrop-blur-xl border-t-[0.5px] border-[#EAEAEA];
+  }
+  .ease-out-expo {
+    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .glass {
+    @apply bg-white/70 dark:bg-black/70 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-shadow-premium {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .brand-item .brand-logo {
+    filter: grayscale(100%);
+    opacity: 0.6;
+    transition: all 0.5s ease-out;
+  }
+  .brand-item:hover .brand-logo {
+    filter: grayscale(0%);
+    opacity: 1;
+  }
+  .brand-item .brand-logo-container {
+    transition: all 0.5s ease-out;
+  }
+  .brand-item:hover .brand-logo-container {
+    border-color: hsl(var(--primary) / 0.2);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  }
+  .brand-item .brand-name {
+    opacity: 0.4;
+    transition: all 0.5s ease-out;
+  }
+  .brand-item:hover .brand-name {
+    opacity: 1;
+  }
+
+  .embla {
+    overflow: hidden;
+  }
+  .embla__container {
+    display: flex;
+  }
+  .embla__slide {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  /* MD3 utility class mappings */
+  .bg-surface {
+    background-color: hsl(var(--surface));
+  }
+  .bg-surface-container {
+    background-color: hsl(var(--surface-container));
+  }
+  .bg-surface-container-lowest {
+    background-color: hsl(var(--surface-container-lowest));
+  }
+  .text-on-surface {
+    color: hsl(var(--on-surface));
+  }
+  .border-outline {
+    border-color: hsl(var(--outline));
+  }
+  .border-outline-variant {
+    border-color: hsl(var(--outline-variant));
+  }
+  .text-outline {
+    color: hsl(var(--outline));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

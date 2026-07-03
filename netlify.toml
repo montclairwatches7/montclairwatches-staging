@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = "frontend/dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  # Ensures the backend code and its dependencies are bundled correctly
+  included_files = ["backend/**"]
+
+[[redirects]]
+  # Redirect all API calls to the Netlify Function
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  # Catch-all for SPA routing (React Router)
+  from = "/*"
+  to = "/index.html"
+  status = 200
