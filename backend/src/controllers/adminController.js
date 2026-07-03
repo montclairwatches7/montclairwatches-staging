@@ -5,9 +5,9 @@ const { sendOrderUpdateEmail } = require('../utils/emailService');
 
 const getDashboardStats = async (req, res) => {
   try {
-    const [[{ totalSales }]] = await db.query('SELECT SUM(total_amount) as totalSales FROM orders WHERE status != "refunded"');
+    const [[{ totalSales }]] = await db.query("SELECT SUM(total_amount) as totalSales FROM orders WHERE status != 'refunded'");
     const [[{ totalOrders }]] = await db.query('SELECT COUNT(*) as totalOrders FROM orders');
-    const [[{ totalUsers }]] = await db.query('SELECT COUNT(*) as totalUsers FROM users WHERE role = "user"');
+    const [[{ totalUsers }]] = await db.query("SELECT COUNT(*) as totalUsers FROM users WHERE role = 'user'");
     const [recentOrders] = await db.query(
       'SELECT o.*, u.name as customer FROM orders o JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC LIMIT 5'
     );
@@ -16,11 +16,11 @@ const getDashboardStats = async (req, res) => {
     );
 
     const [recentUsers] = await db.query(
-      'SELECT id, name, email, created_at FROM users WHERE role = "user" ORDER BY created_at DESC LIMIT 5'
+      "SELECT id, name, email, created_at FROM users WHERE role = 'user' ORDER BY created_at DESC LIMIT 5"
     );
 
-    const [[{ pendingOrdersCount }]] = await db.query('SELECT COUNT(*) as pendingOrdersCount FROM orders WHERE status = "pending" OR status = "payment_pending"');
-    const [[{ cancelledOrdersCount }]] = await db.query('SELECT COUNT(*) as cancelledOrdersCount FROM orders WHERE status = "cancelled"');
+    const [[{ pendingOrdersCount }]] = await db.query("SELECT COUNT(*) as pendingOrdersCount FROM orders WHERE status = 'pending' OR status = 'payment_pending'");
+    const [[{ cancelledOrdersCount }]] = await db.query("SELECT COUNT(*) as cancelledOrdersCount FROM orders WHERE status = 'cancelled'");
 
     const [salesTrend] = await db.query(`
       SELECT 
@@ -231,10 +231,10 @@ const getAllOrders = async (req, res) => {
     const [[stats]] = await db.query(`
       SELECT 
         COUNT(*) as totalOrders,
-        COUNT(CASE WHEN status = "pending" THEN 1 END) as pendingOrders,
-        COUNT(CASE WHEN status = "processing" THEN 1 END) as processingOrders,
-        COUNT(CASE WHEN status = "cancelled" THEN 1 END) as cancelledOrders,
-        COUNT(CASE WHEN status = "returned" THEN 1 END) as returnedOrders
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pendingOrders,
+        COUNT(CASE WHEN status = 'processing' THEN 1 END) as processingOrders,
+        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelledOrders,
+        COUNT(CASE WHEN status = 'returned' THEN 1 END) as returnedOrders
       FROM orders
     `);
 

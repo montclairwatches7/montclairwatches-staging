@@ -65,7 +65,7 @@ const verifyPayment = async (req, res) => {
   try {
     const { paymentId } = req.body;
     await db.query(
-      'UPDATE orders SET status = "processing" WHERE payment_id = ? AND status = "payment_pending"',
+      "UPDATE orders SET status = 'processing' WHERE payment_id = ? AND status = 'payment_pending'",
       [paymentId],
     );
     res.json({ message: "Payment verified and archival sequence advanced." });
@@ -136,7 +136,7 @@ const cancelOrder = async (req, res) => {
     }
 
     await db.query(
-      'UPDATE orders SET status = "cancelled", cancel_reason = ? WHERE id = ?',
+      "UPDATE orders SET status = 'cancelled', cancel_reason = ? WHERE id = ?",
       [reason, req.params.id],
     );
 
