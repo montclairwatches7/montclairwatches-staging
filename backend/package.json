@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "init-db": "node src/config/initDb.js",
-    "seed-db": "node src/config/seedDb.js",
+    "migrate": "node src/database/migrator.js",
+    "migrate:rollback": "node src/database/migrator.js rollback",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

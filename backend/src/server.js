@@ -15,6 +15,8 @@ const { createGenericController } = require("./controllers/genericController");
 const { createGenericRouter } = require("./routes/genericRouter");
 const { validateRequestPayload } = require("./validators/schemas");
 const uploadRoutes = require("./routes/uploadRoutes");
+const { runMigrations } = require("./database/migrator");
+
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -140,12 +142,21 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal server error" });
 });
 
-// ─── Start Server (non-production only) ──────────────────────────────────────
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Montclair Server running on Port ${PORT}`);
-    console.log(`🔗 API: http://localhost:${PORT}/api`);
-  });
-}
+// ─── Start Server ─────────────────────────────────────────────────────────────
+const startServer = async () => {
+  try {
+    // Auto-run DB migrations before accepting requests
+    await runMigrations();
 
-module.exports = app;
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Montclair Server running on Port ${PORT}`);
+      console.log(`🔗 API: http://localhost:${PORT}/api`);
+    });
+  } catch (error) {
+    console.error("💥 Failed to start server:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
+
