@@ -1,5 +1,6 @@
 name: Build & Validate
 
+# Trigger sync run
 on:
   push:
     branches: [main, staging]
