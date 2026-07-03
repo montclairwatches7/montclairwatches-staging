@@ -132,7 +132,7 @@ export default function CheckoutPage() {
       }
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        key: data.key || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
         amount: data.order.amount,
         currency: data.order.currency,
         name: "Montclair Luxury",
