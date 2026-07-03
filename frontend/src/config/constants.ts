@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   APP_NAME: "Montclair",
-  API_BASE_URL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  API_BASE_URL: import.meta.env.VITE_API_URL || `${window.location.origin}/api`,
   PAGINATION: {
     DEFAULT_PAGE: 1,
     ADMIN_USERS_FIRST_PAGE: 30,
