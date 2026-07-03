@@ -34,7 +34,13 @@ const categoryController = {
           .json({ message: "Category name must be unique" });
       }
 
-      const newCategory = await Category.create({ name, status });
+      // Automatically generate slug from name
+      const slug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+      const newCategory = await Category.create({ name, slug, status });
       res.status(201).json(newCategory);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -57,7 +63,13 @@ const categoryController = {
           .json({ message: "Category name must be unique" });
       }
 
-      const updated = await Category.update(id, { name, status });
+      // Automatically generate slug from name
+      const slug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+      const updated = await Category.update(id, { name, slug, status });
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: error.message });
