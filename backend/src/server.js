@@ -142,12 +142,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal server error" });
 });
 
-// ─── Start Server ─────────────────────────────────────────────────────────────
+// ─── Start Server (Regular mode — Hostinger / local dev) ─────────────────────
 const startServer = async () => {
   try {
-    // Auto-run DB migrations before accepting requests
     await runMigrations();
-
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Montclair Server running on Port ${PORT}`);
       console.log(`🔗 API: http://localhost:${PORT}/api`);
@@ -158,5 +156,11 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// ─── Dual Mode Export ─────────────────────────────────────────────────────────
+// When run directly (node server.js → Hostinger / local dev): start the server
+// When required by Netlify Functions: just export the app
+if (require.main === module) {
+  startServer();
+}
 
+module.exports = { app, runMigrations };
