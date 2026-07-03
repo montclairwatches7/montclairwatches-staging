@@ -1,27 +1,23 @@
 /**
  * 001_create_users.js
- * Creates the users table with all required fields.
+ * Creates the users table exactly as defined in Railway.
  */
 
 exports.up = async (connection) => {
   await connection.query(`
     CREATE TABLE IF NOT EXISTS users (
       id            INT           AUTO_INCREMENT PRIMARY KEY,
-      name          VARCHAR(150)  NOT NULL,
-      email         VARCHAR(255)  NOT NULL UNIQUE,
-      password      VARCHAR(255)  NULL,
-      phone         VARCHAR(20)   NULL,
-      avatar        VARCHAR(500)  NULL,
-      role          ENUM('user','admin') NOT NULL DEFAULT 'user',
-      is_blocked    TINYINT(1)    NOT NULL DEFAULT 0,
-      google_id     VARCHAR(255)  NULL,
-      reset_token   VARCHAR(255)  NULL,
-      reset_token_expiry DATETIME NULL,
-      created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      INDEX idx_email (email),
-      INDEX idx_role  (role)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      name          VARCHAR(255)  CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+      email         VARCHAR(255)  CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+      password      VARCHAR(255)  CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+      role          ENUM('user','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'user',
+      phone         VARCHAR(20)   CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+      is_blocked    TINYINT(1)    DEFAULT 0,
+      avatar        LONGTEXT      CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+      last_login    TIMESTAMP     NULL DEFAULT NULL,
+      created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY email (email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   `);
 };
 

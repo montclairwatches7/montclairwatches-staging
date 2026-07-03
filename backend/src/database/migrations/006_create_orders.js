@@ -1,40 +1,33 @@
 /**
  * 006_create_orders.js
- * Creates orders and order_items tables.
+ * Creates orders and order_items tables exactly as defined in Railway.
  */
 
 exports.up = async (connection) => {
   await connection.query(`
     CREATE TABLE IF NOT EXISTS orders (
-      id               INT             AUTO_INCREMENT PRIMARY KEY,
-      user_id          INT             NOT NULL,
-      total_amount     DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
-      discount_amount  DECIMAL(10,2)   NULL DEFAULT 0.00,
-      shipping_address JSON            NULL,
-      status           ENUM(
-                         'payment_pending',
-                         'pending',
-                         'processing',
-                         'shipped',
-                         'delivered',
-                         'cancelled',
-                         'refunded'
-                       ) NOT NULL DEFAULT 'payment_pending',
-      payment_id       VARCHAR(100)    NULL,
-      payment_method   VARCHAR(50)     NULL DEFAULT 'razorpay',
-      coupon_code      VARCHAR(50)     NULL,
-      cancel_reason    TEXT            NULL,
-      tracking_number  VARCHAR(100)    NULL,
-      notes            TEXT            NULL,
-      created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      INDEX idx_user_id    (user_id),
-      INDEX idx_status     (status),
-      INDEX idx_payment_id (payment_id),
-      CONSTRAINT fk_order_user
-        FOREIGN KEY (user_id) REFERENCES users(id)
-        ON DELETE RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      id                INT             AUTO_INCREMENT PRIMARY KEY,
+      user_id           INT             NOT NULL,
+      total_amount      DECIMAL(10,2)   NOT NULL,
+      status            ENUM(
+                          'payment_pending',
+                          'processing',
+                          'shipped',
+                          'out_for_delivery',
+                          'delivered',
+                          'cancelled',
+                          'refunded'
+                        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'payment_pending',
+      shipping_address  TEXT            CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+      payment_id        VARCHAR(255)    CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+      tracking_number   VARCHAR(100)    CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+      cancel_reason     TEXT            CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+      created_at        TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      KEY user_id (user_id),
+      KEY idx_orders_user (user_id),
+      KEY idx_orders_status (status),
+      CONSTRAINT fk_orders_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   `);
 
   await connection.query(`
@@ -42,16 +35,13 @@ exports.up = async (connection) => {
       id          INT           AUTO_INCREMENT PRIMARY KEY,
       order_id    INT           NOT NULL,
       product_id  INT           NOT NULL,
-      quantity    INT           NOT NULL DEFAULT 1,
-      price       DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-      created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_order_id   (order_id),
-      INDEX idx_product_id (product_id),
-      CONSTRAINT fk_order_item_order
-        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-      CONSTRAINT fk_order_item_product
-        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      quantity    INT           NOT NULL,
+      price       DECIMAL(10,2) NOT NULL,
+      KEY order_id (order_id),
+      KEY product_id (product_id),
+      CONSTRAINT fk_order_items_order_id FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
+      CONSTRAINT fk_order_items_product_id FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   `);
 };
 
