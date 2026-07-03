@@ -49,12 +49,12 @@ export const useStore = create<StoreState>((set, get) => ({
       try {
         await api.post('/store/cart/add', { productId });
         set((state) => {
-          const existing = state.cart.find((i) => i.productId === productId);
+          const existing = state.cart.find((i) => String(i.productId) === String(productId));
           toast({ title: 'Logistics Updated', description: 'Item added to your distribution bag.' });
           if (existing) {
             return {
               cart: state.cart.map((i) =>
-                i.productId === productId ? { ...i, quantity: i.quantity + 1 } : i
+                String(i.productId) === String(productId) ? { ...i, quantity: i.quantity + 1 } : i
               ),
             };
           }
@@ -67,11 +67,11 @@ export const useStore = create<StoreState>((set, get) => ({
       }
     } else {
       set((state) => {
-        const existing = state.cart.find((i) => i.productId === productId);
+        const existing = state.cart.find((i) => String(i.productId) === String(productId));
         let newCart;
         if (existing) {
           newCart = state.cart.map((i) =>
-            i.productId === productId ? { ...i, quantity: i.quantity + 1 } : i
+            String(i.productId) === String(productId) ? { ...i, quantity: i.quantity + 1 } : i
           );
         } else {
           newCart = [...state.cart, { productId, quantity: 1 }];
@@ -88,12 +88,12 @@ export const useStore = create<StoreState>((set, get) => ({
       try {
         await api.delete(`/store/cart/${productId}`);
         set((state) => ({
-          cart: state.cart.filter((i) => i.productId !== productId),
+          cart: state.cart.filter((i) => String(i.productId) !== String(productId)),
         }));
       } catch (err) { console.error(err); }
     } else {
       set((state) => {
-        const newCart = state.cart.filter((i) => i.productId !== productId);
+        const newCart = state.cart.filter((i) => String(i.productId) !== String(productId));
         localStorage.setItem('guest_cart', JSON.stringify(newCart));
         return { cart: newCart };
       });
@@ -106,18 +106,18 @@ export const useStore = create<StoreState>((set, get) => ({
         await api.put('/store/cart/quantity', { productId, quantity });
         set((state) => ({
           cart: quantity <= 0
-            ? state.cart.filter((i) => i.productId !== productId)
+            ? state.cart.filter((i) => String(i.productId) !== String(productId))
             : state.cart.map((i) =>
-                i.productId === productId ? { ...i, quantity } : i
+                String(i.productId) === String(productId) ? { ...i, quantity } : i
               ),
         }));
       } catch (err) { console.error(err); }
     } else {
       set((state) => {
         const newCart = quantity <= 0
-          ? state.cart.filter((i) => i.productId !== productId)
+          ? state.cart.filter((i) => String(i.productId) !== String(productId))
           : state.cart.map((i) =>
-              i.productId === productId ? { ...i, quantity } : i
+              String(i.productId) === String(productId) ? { ...i, quantity } : i
             );
         localStorage.setItem('guest_cart', JSON.stringify(newCart));
         return { cart: newCart };
