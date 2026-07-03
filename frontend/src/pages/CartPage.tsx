@@ -25,6 +25,9 @@ export default function CartPage() {
   const { data: dbProducts = [], isLoading } = useProducts();
   const { toast } = useToast();
 
+  console.log("🛒 Cart State in CartPage:", cart);
+
+
   const handleApplyCoupon = async () => {
     if (!coupon) return;
     try {
