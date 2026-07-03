@@ -47,9 +47,9 @@ Desktop.ini
 *.sln
 *.sw?
 
-# ─── Netlify (no longer used) ────────────────
-netlify.toml
-netlify/
+# ─── Staging branch note ─────────────────────────────────────────────────────
+# netlify.toml and netlify/ are TRACKED on this branch (used for Netlify deploy)
+# They are ignored on the main branch (Hostinger uses different setup)
 
 # ─── Bun (not used in CI/CD) ─────────────────
 bun.lock

@@ -2,12 +2,12 @@ name: Build & Validate
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, staging]
   pull_request:
-    branches: [main]
+    branches: [main, staging]
 
 jobs:
-  # ─── Build Frontend ─────────────────────────────────────────
+  # ─── Build Frontend ─────────────────────────────────────────────────────────
   build-frontend:
     name: Build Frontend (React + Vite)
     runs-on: ubuntu-latest
@@ -28,20 +28,20 @@ jobs:
 
       - name: Build frontend
         env:
-          # VITE_API_URL will be injected from GitHub Secrets
-          # Set this in: Repo → Settings → Secrets → Actions → New secret
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          # For main  → points to Hostinger production API
+          # For staging → points to Netlify function URL
+          VITE_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.VITE_API_URL || secrets.STAGING_VITE_API_URL }}
           CI: false
         run: npm run build --prefix frontend
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-dist
+          name: frontend-dist-${{ github.ref_name }}
           path: frontend/dist/
           retention-days: 7
 
-  # ─── Validate Backend ───────────────────────────────────────
+  # ─── Validate Backend ────────────────────────────────────────────────────────
   validate-backend:
     name: Validate Backend (Node.js)
     runs-on: ubuntu-latest
@@ -63,7 +63,7 @@ jobs:
       - name: Check backend syntax
         run: node --check backend/src/server.js
 
-  # ─── Summary ────────────────────────────────────────────────
+  # ─── Summary ──────────────────────────────────────────────────────────────
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
@@ -73,13 +73,16 @@ jobs:
     steps:
       - name: Report status
         run: |
-          echo "================================"
-          echo "  Montclair Watches CI Summary  "
-          echo "================================"
+          echo "========================================"
+          echo "  Montclair Watches CI Summary"
+          echo "  Branch: ${{ github.ref_name }}"
+          echo "========================================"
           echo "Frontend Build : ${{ needs.build-frontend.result }}"
           echo "Backend Check  : ${{ needs.validate-backend.result }}"
           echo ""
-          echo "Deployment Note:"
-          echo "  Hostinger hPanel auto-deploys from GitHub (main branch)."
-          echo "  Set environment variables directly in hPanel → Node.js App."
-          echo "================================"
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "→ PRODUCTION: Hostinger hPanel auto-deploys from main."
+          else
+            echo "→ STAGING: Netlify auto-deploys from staging branch."
+          fi
+          echo "========================================"
