@@ -3,11 +3,13 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-// ─── SSL Config (required for Aiven, optional for Railway/Hostinger) ────────
-// Set DB_SSL=true in env vars when using Aiven MySQL
+// ─── SSL Config ────────────────────────────────────────────────────────────
+// DB_SSL=true  → Aiven MySQL (encrypted TLS, rejectUnauthorized=false because
+//                Aiven uses their own CA not in Node's default trust store)
+// DB_SSL=false → Railway / Hostinger (no SSL required)
 const sslConfig = process.env.DB_SSL === "true"
-  ? { rejectUnauthorized: true }   // Aiven / any managed MySQL with SSL
-  : false;                          // Railway / Hostinger (no SSL needed)
+  ? { rejectUnauthorized: false }  // Aiven: encrypted but skip CA chain check
+  : false;                          // Railway / Hostinger: no SSL
 
 const pool = mysql.createPool({
   host:     process.env.DB_HOST,
