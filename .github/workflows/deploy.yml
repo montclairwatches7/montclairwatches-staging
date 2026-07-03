@@ -63,11 +63,28 @@ jobs:
       - name: Check backend syntax
         run: node --check backend/src/server.js
 
+  # ─── Sync to Staging Repo ───────────────────────────────────────────────────
+  sync-staging-repo:
+    name: Sync Staging Repo (staging -> target main)
+    runs-on: ubuntu-latest
+    needs: [build-frontend, validate-backend]
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push' && success()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to target staging repository
+        run: |
+          git push --force https://${{ secrets.SYNC_PAT }}@github.com/montclairwatches7/montclairwatches-staging.git staging:main
+
   # ─── Summary ──────────────────────────────────────────────────────────────
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [build-frontend, validate-backend]
+    needs: [build-frontend, validate-backend, sync-staging-repo]
     if: always()
 
     steps:
@@ -79,10 +96,12 @@ jobs:
           echo "========================================"
           echo "Frontend Build : ${{ needs.build-frontend.result }}"
           echo "Backend Check  : ${{ needs.validate-backend.result }}"
+          echo "Sync Repo      : ${{ needs.sync-staging-repo.result }}"
           echo ""
           if [ "${{ github.ref_name }}" = "main" ]; then
             echo "→ PRODUCTION: Hostinger hPanel auto-deploys from main."
           else
-            echo "→ STAGING: Netlify auto-deploys from staging branch."
+            echo "→ STAGING: Netlify auto-deploys from staging branch (mirrored to staging repo)."
           fi
           echo "========================================"
+
