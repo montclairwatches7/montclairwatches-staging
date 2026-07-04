@@ -17,9 +17,9 @@ import {
   Clock,
 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
-import { useBanners, useTestimonials, useBrands, useServices } from "@/hooks/useModules";
-import { useQuery } from '@tanstack/react-query';
-import api from '@/lib/api';
+import { useBanners, useTestimonials, useBrands, useServices, useCategories } from "@/hooks/useModules";
+
+
 import ProductCard from "@/components/ProductCard";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/products";
@@ -121,13 +121,13 @@ export default function HomePage() {
   const { data: rawTestimonials } = useTestimonials();
   const { data: rawBrands } = useBrands();
   const { data: rawServices } = useServices();
-  const { data: rawCategories } = useQuery({ queryKey: ['categories'], queryFn: async () => { const res = await api.get('/categories'); return res.data || []; } });
+  const { data: rawCategories = [] } = useCategories();
 
   const products = dbProducts;
   const slides = (rawBanners && rawBanners.length > 0) ? rawBanners.map((b: any) => ({ image: b.image_url, title: b.title, subtitle: b.subtitle, cta1: b.cta_1_text, cta2: b.cta_2_text })) : FALLBACK_SLIDES;
-  const categories = (rawCategories?.data && rawCategories.data.length > 0)
-    ? rawCategories.data.map((c: any) => {
-      const slugValue = c.slug || c.name.toLowerCase().replace(/\s+/g, '-');
+  const categories = (Array.isArray(rawCategories) && rawCategories.length > 0)
+    ? rawCategories.map((c: any) => {
+      const slugValue = c.slug || c.name?.toLowerCase().replace(/\s+/g, '-') || '';
       return {
         name: c.name,
         img: c.image_url || c.image || FALLBACK_CATEGORIES[0].img,

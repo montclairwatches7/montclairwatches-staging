@@ -32,8 +32,12 @@ export const useProducts = () => {
     queryKey: ['products'],
     queryFn: async () => {
       const { data } = await api.get('/products');
-      return data.map(normalizeProduct);
+      // Handle both plain array and { success, data: [...] } response shapes
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+      return list.map(normalizeProduct);
     },
+    // Return empty array on error instead of crashing
+    placeholderData: [],
   });
 };
 
@@ -42,7 +46,8 @@ export const useProduct = (id: string) => {
     queryKey: ['product', id],
     queryFn: async () => {
       const { data } = await api.get(`/products/${id}`);
-      return normalizeProduct(data);
+      const product = data?.data ?? data;
+      return normalizeProduct(product);
     },
     enabled: !!id,
   });
