@@ -52,12 +52,13 @@ const COLORS = ["#b87333", "#1e293b", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"
 
 export default function AdminDashboard() {
   const { toast } = useToast();
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, isError } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
       const { data } = await api.get("/admin/stats");
       return data;
     },
+    retry: 1,
   });
 
   const [activeTab, setActiveTab] = useState<"revenue" | "sales">("revenue");
@@ -66,15 +67,26 @@ export default function AdminDashboard() {
   const { data: graphData, isLoading: isGraphLoading } = useQuery({
     queryKey: ["admin-graph-stats", timeRange],
     queryFn: async () => {
-      const { data } = await api.get(`/admin/graph-stats?range=${timeRange}`);
+      const { data } = await api.get(`/admin/stats/graph?range=${timeRange}`);
       return data;
     },
+    retry: 1,
   });
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (isError || !stats) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-center">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+        <h2 className="text-xl font-bold">Failed to load dashboard data</h2>
+        <p className="text-muted-foreground text-sm">Could not connect to the backend API. Please ensure the server is running.</p>
       </div>
     );
   }
@@ -426,7 +438,7 @@ export default function AdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stats.recentOrders.map((order: any) => (
+                {(stats.recentOrders ?? []).map((order: any) => (
                   <TableRow
                     key={order.id}
                     className="group hover:bg-muted/30 transition-colors border-muted/20"
@@ -484,7 +496,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-muted/20">
-              {stats.topProducts.map((product: any, idx: number) => (
+              {(stats.topProducts ?? []).map((product: any, idx: number) => (
                 <div
                   key={idx}
                   className="p-4 flex items-center gap-4 hover:bg-muted/10 transition-colors"
