@@ -9,6 +9,7 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS    = "--legacy-peer-deps"
+  VITE_API_URL = "https://api.montclair-watch.com/api"
 
 # ─── Redirect: SPA catch-all (React Router) ──────────────────────────────────
 [[redirects]]
