@@ -119,12 +119,20 @@ class AuthController extends Controller
         $credential = $request->credential;
 
         try {
-            // Retrieve Google Auth payload dynamically
-            $client = new \Google\Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
-            $payload = $client->verifyIdToken($credential);
+            // Verify Google Auth payload using Google's tokeninfo endpoint (no composer package needed)
+            $response = \Illuminate\Support\Facades\Http::get('https://oauth2.googleapis.com/tokeninfo', [
+                'id_token' => $credential
+            ]);
             
-            if (!$payload) {
-                return response()->json(['message' => 'Google authentication failed'], 401);
+            if (!$response->successful()) {
+                return response()->json(['message' => 'Google authentication failed: ' . $response->json('error_description', 'Invalid token')], 401);
+            }
+
+            $payload = $response->json();
+            
+            // Verify the token was issued for our Client ID
+            if ($payload['aud'] !== env('GOOGLE_CLIENT_ID')) {
+                return response()->json(['message' => 'Google authentication failed: Invalid Client ID'], 401);
             }
 
             $email = $payload['email'];
