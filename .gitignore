@@ -62,3 +62,5 @@ bun.lockb
 coverage/
 .cache/
 .npmrc
+composer.phar
+backend-node/
