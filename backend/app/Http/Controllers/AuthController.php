@@ -140,7 +140,7 @@ class AuthController extends Controller
 
             $user = User::where('email', $email)->first();
             if (!$user) {
-                $randomPassword = str_random(12);
+                $randomPassword = \Illuminate\Support\Str::random(12);
                 $user = User::create([
                     'name' => $name,
                     'email' => $email,
