@@ -111,6 +111,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/admin/products/{id}', [AdminController::class, 'deleteProduct']);
     
     // Coupon Management
+    Route::get('/admin/coupons', [CouponController::class, 'index']);
+    Route::get('/admin/coupons/stats', [CouponController::class, 'getCouponStats']);
     Route::post('/admin/coupons', [CouponController::class, 'store']);
     Route::put('/admin/coupons/{id}', [CouponController::class, 'update']);
     Route::delete('/admin/coupons/{id}', [CouponController::class, 'destroy']);
