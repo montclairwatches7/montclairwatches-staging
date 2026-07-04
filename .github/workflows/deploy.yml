@@ -1,6 +1,5 @@
 name: Build & Validate
 
-# Trigger sync run
 on:
   push:
     branches: [main, staging]
@@ -17,10 +16,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
@@ -29,9 +28,7 @@ jobs:
 
       - name: Build frontend
         env:
-          # For main  → points to Hostinger production API
-          # For staging → points to Netlify function URL
-          VITE_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.VITE_API_URL || secrets.STAGING_VITE_API_URL }}
+          VITE_API_URL: https://api.montclair-watch.com/api
           CI: false
         run: npm run build --prefix frontend
 
@@ -42,27 +39,34 @@ jobs:
           path: frontend/dist/
           retention-days: 7
 
-  # ─── Validate Backend ────────────────────────────────────────────────────────
+  # ─── Validate Laravel Backend ────────────────────────────────────────────────
   validate-backend:
-    name: Validate Backend (Node.js)
+    name: Validate Backend (Laravel PHP)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
         with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: backend/package-lock.json
+          php-version: "8.3"
+          extensions: mbstring, pdo_mysql, openssl, tokenizer, xml, ctype, json, bcmath, curl
+          tools: composer:v2
 
       - name: Install backend dependencies
-        run: npm ci --prefix backend --legacy-peer-deps
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+        working-directory: backend
 
-      - name: Check backend syntax
-        run: node --check backend/src/server.js
+      - name: Check Laravel routes compile
+        run: php artisan route:list --json > /dev/null
+        working-directory: backend
+        env:
+          APP_KEY: base64:NGX8jxU6HM/n/AbPZe1zu+SCpDod8p9bQZI9yrNDDR8=
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
 
   # ─── Sync to Staging Repo ───────────────────────────────────────────────────
   sync-staging-repo:
@@ -77,7 +81,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-
 
       - name: Push to target staging repository
         run: |
@@ -101,10 +104,6 @@ jobs:
           echo "Backend Check  : ${{ needs.validate-backend.result }}"
           echo "Sync Repo      : ${{ needs.sync-staging-repo.result }}"
           echo ""
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "→ PRODUCTION: Hostinger hPanel auto-deploys from main."
-          else
-            echo "→ STAGING: Netlify auto-deploys from staging branch (mirrored to staging repo)."
-          fi
+          echo "→ API: https://api.montclair-watch.com/api"
+          echo "→ Staging: https://montclairwatches-staging.netlify.app"
           echo "========================================"
-
