@@ -21,7 +21,7 @@ Route::get('/', function () {
 // ─── Temporary Route to Run Migrations on Hostinger ──────────────────────────
 Route::get('/run-migrations', function () {
     try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
         return response()->json([
             'status' => 'success',
             'message' => 'Migrations ran successfully!',
