@@ -53,7 +53,7 @@ import { AuthProvider } from "./context/AuthContext";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <GoogleOAuthProvider clientId="782559762398-lva3no1ockph5t92pmv2q3f3skmr5hvq.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
