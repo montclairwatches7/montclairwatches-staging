@@ -105,6 +105,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/admin/users/{id}', [AdminController::class, 'getUserProfile']);
     
     // Product Management
+    Route::get('/admin/products', [ProductController::class, 'index']);
     Route::post('/admin/products', [AdminController::class, 'createProduct']);
     Route::put('/admin/products/{id}', [AdminController::class, 'updateProduct']);
     Route::delete('/admin/products/{id}', [AdminController::class, 'deleteProduct']);
