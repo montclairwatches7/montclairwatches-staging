@@ -33,6 +33,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_API_URL: https://api.montclair-watch.com/api
+          VITE_GOOGLE_CLIENT_ID: 782559762398-lva3no1ockph5t92pmv2q3f3skmr5hvq.apps.googleusercontent.com
           CI: false
 
       - name: Deploy to Hostinger via FTP
