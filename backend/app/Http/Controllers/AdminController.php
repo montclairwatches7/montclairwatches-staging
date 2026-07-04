@@ -382,6 +382,42 @@ class AdminController extends Controller
         return response()->json($arr);
     }
 
+    // ─── Products ───────────────────────────────────────────────────────────────
+
+    public function getAllProducts(Request $request)
+    {
+        $limit = $request->input('limit', 10);
+        $search = $request->input('search');
+        $category = $request->input('category');
+        $status = $request->input('status');
+
+        $query = Product::query();
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%")
+                  ->orWhere('brand', 'like', "%{$search}%");
+        }
+
+        if ($category && $category !== 'all') {
+            $query->where('category', $category);
+        }
+
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $paginator = $query->paginate($limit);
+
+        return response()->json([
+            'data' => $paginator->items(),
+            'meta' => [
+                'total' => $paginator->total(),
+                'pages' => $paginator->lastPage(),
+                'current_page' => $paginator->currentPage()
+            ]
+        ]);
+    }
+
     public function createProduct(Request $request)
     {
         $request->validate([
