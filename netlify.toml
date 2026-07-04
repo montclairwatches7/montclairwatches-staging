@@ -1,29 +1,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# netlify.toml — STAGING BRANCH ONLY
-# This file belongs to the 'staging' branch for Netlify testing.
-# The 'main' branch (Hostinger) does NOT use this file.
+# netlify.toml — STAGING BRANCH ONLY (Frontend Staging Only)
 # ─────────────────────────────────────────────────────────────────────────────
 
 [build]
   command   = "npm run build"
   publish   = "frontend/dist"
-  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS    = "--legacy-peer-deps"
-
-[functions]
-  node_bundler   = "esbuild"
-  # Bundle the backend code along with the function
-  included_files = ["backend/src/**", "backend/package.json"]
-
-# ─── Redirect: all /api/* calls → Netlify Function ───────────────────────────
-[[redirects]]
-  from   = "/api/*"
-  to     = "/.netlify/functions/api"
-  status = 200
-  force  = true
 
 # ─── Redirect: SPA catch-all (React Router) ──────────────────────────────────
 [[redirects]]
