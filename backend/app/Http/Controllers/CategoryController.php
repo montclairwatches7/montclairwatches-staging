@@ -5,12 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::all();
+        $categories = Cache::remember('categories.all', 3600, function () {
+            return Category::all();
+        });
+
         return response()->json(['success' => true, 'data' => $categories]);
     }
 
@@ -48,6 +52,8 @@ class CategoryController extends Controller
             'status' => $request->input('status', 'active')
         ]);
 
+        Cache::forget('categories.all');
+
         return response()->json($category, 201);
     }
 
@@ -69,12 +75,15 @@ class CategoryController extends Controller
             'status' => $request->input('status', 'active')
         ]);
 
+        Cache::forget('categories.all');
+
         return response()->json($category);
     }
 
     public function destroy($id)
     {
         Category::findOrFail($id)->delete();
+        Cache::forget('categories.all');
         return response()->json(['message' => 'Category deleted successfully']);
     }
 }

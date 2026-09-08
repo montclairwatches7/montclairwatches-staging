@@ -6,12 +6,16 @@ use App\Models\Coupon;
 use App\Models\CouponUsage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class CouponController extends Controller
 {
     public function index()
     {
-        $coupons = Coupon::orderBy('created_at', 'desc')->get();
+        $coupons = Cache::remember('coupons.all', 300, function () {
+            return Coupon::orderBy('created_at', 'desc')->get();
+        });
+
         return response()->json($coupons);
     }
 
@@ -32,6 +36,7 @@ class CouponController extends Controller
     {
         try {
             $coupon = Coupon::create($request->all());
+            Cache::forget('coupons.all');
             return response()->json($coupon, 201);
         } catch (\Illuminate\Database\QueryException $e) {
             if ($e->errorInfo[1] == 1062) {
@@ -45,12 +50,14 @@ class CouponController extends Controller
     {
         $coupon = Coupon::findOrFail($id);
         $coupon->update($request->all());
+        Cache::forget('coupons.all');
         return response()->json(['message' => 'Coupon updated successfully']);
     }
 
     public function destroy($id)
     {
         Coupon::findOrFail($id)->delete();
+        Cache::forget('coupons.all');
         return response()->json(['message' => 'Coupon deleted successfully']);
     }
 

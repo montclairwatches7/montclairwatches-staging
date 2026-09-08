@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { SafeImage } from "@/components/loading";
 
 interface Props {
   product: Product;
@@ -47,21 +48,20 @@ export default function ProductCard({ product, showAddToCart = true }: Props) {
     <article className="group relative flex flex-col bg-white rounded-3xl border border-zinc-100 hover:border-primary/30 transition-all duration-700 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1">
       <Link
         to={`/product/${product.id}`}
-        className="relative block w-full aspect-square bg-white overflow-hidden group/img"
+        className="relative block w-full aspect-square bg-zinc-50 overflow-hidden group/img"
         onMouseLeave={() => setActiveImageIndex(0)}
       >
         {images.slice(0, 3).map((imgUrl, idx) => (
-          <img
+          <SafeImage
             key={idx}
             src={imgUrl}
             alt={product.name}
-            className={cn(
-              "absolute inset-0 w-full h-full object-contain p-0 transition-all duration-700 ease-out",
+            rounded="none"
+            wrapperClassName={cn(
+              "absolute inset-0 transition-all duration-700 ease-out",
               activeImageIndex === idx ? "opacity-100 scale-105" : "opacity-0 scale-100 pointer-events-none"
             )}
-            onError={(e: any) => {
-              e.target.src = "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=800&q=80";
-            }}
+            className="p-4 sm:p-6"
           />
         ))}
 
@@ -81,6 +81,7 @@ export default function ProductCard({ product, showAddToCart = true }: Props) {
 
       <button
         onClick={handleWishlist}
+        aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
         className={cn(
           "absolute top-2 sm:top-4 right-2 sm:right-4 w-8 sm:w-9 h-8 sm:h-9 rounded-full z-10 flex items-center justify-center transition-all duration-500 shadow-sm border border-zinc-100/50",
           isWished
@@ -90,6 +91,20 @@ export default function ProductCard({ product, showAddToCart = true }: Props) {
       >
         <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill={isWished ? "currentColor" : "none"} />
       </button>
+
+      {showAddToCart && (
+        <button
+          onClick={handleAddToCart}
+          aria-label="Add to cart"
+          className={cn(
+            "absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-8 sm:w-9 h-8 sm:h-9 rounded-full z-10 flex items-center justify-center transition-all duration-500 shadow-sm border border-zinc-100/50",
+            "bg-white/90 backdrop-blur-md text-foreground/40 hover:text-primary hover:bg-white",
+            "md:opacity-0 md:translate-y-2 group-hover:opacity-100 group-hover:translate-y-0"
+          )}
+        >
+          <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+        </button>
+      )}
 
       <div className="flex flex-col p-3 sm:p-5 gap-2 sm:gap-3.5">
         <div className="space-y-0.5 sm:space-y-1">

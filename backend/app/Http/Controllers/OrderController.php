@@ -36,14 +36,12 @@ class OrderController extends Controller
                 'payment_id' => $paymentId,
             ]);
 
-            foreach ($request->cartItems as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['productId'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                ]);
-            }
+            OrderItem::insert(array_map(fn($item) => [
+                'order_id' => $order->id,
+                'product_id' => $item['productId'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+            ], $request->cartItems));
 
             CartItem::where('user_id', $userId)->delete();
 
@@ -97,14 +95,17 @@ class OrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $formatted = $orders->map(function ($order) {
-            $items = OrderItem::where('order_id', $order->id)
-                ->join('products', 'order_items.product_id', '=', 'products.id')
-                ->select('order_items.*', 'products.name', 'products.image')
-                ->get();
-            
+        $orderIds = $orders->pluck('id');
+
+        $itemsByOrder = OrderItem::whereIn('order_id', $orderIds)
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->select('order_items.*', 'products.name', 'products.image')
+            ->get()
+            ->groupBy('order_id');
+
+        $formatted = $orders->map(function ($order) use ($itemsByOrder) {
             $arr = $order->toArray();
-            $arr['items'] = $items;
+            $arr['items'] = $itemsByOrder->get($order->id, collect())->values();
             return $arr;
         });
 

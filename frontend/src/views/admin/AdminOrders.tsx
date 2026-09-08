@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import {
@@ -195,25 +195,27 @@ export default function AdminOrders() {
     },
   });
 
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = useMemo(() => {
     const searchLower = filters.search.toLowerCase();
-    const customer = (order.customer || "").toLowerCase();
-    const email = (order.email || "").toLowerCase();
-    const id = (order.id || "").toString();
+    return orders.filter((order) => {
+      const customer = (order.customer || "").toLowerCase();
+      const email = (order.email || "").toLowerCase();
+      const id = (order.id || "").toString();
 
-    return (
-      customer.includes(searchLower) ||
-      email.includes(searchLower) ||
-      id.includes(searchLower)
-    );
-  });
+      return (
+        customer.includes(searchLower) ||
+        email.includes(searchLower) ||
+        id.includes(searchLower)
+      );
+    });
+  }, [orders, filters.search]);
 
   const startIndex =
     currentPage === 1 ? 0 : firstPageLimit + (currentPage - 2) * nextPagesLimit;
   const currentLimit = currentPage === 1 ? firstPageLimit : nextPagesLimit;
-  const paginatedOrders = filteredOrders.slice(
-    startIndex,
-    startIndex + currentLimit,
+  const paginatedOrders = useMemo(
+    () => filteredOrders.slice(startIndex, startIndex + currentLimit),
+    [filteredOrders, startIndex, currentLimit],
   );
 
   const totalPages =

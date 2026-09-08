@@ -21,6 +21,7 @@ import { useBanners, useTestimonials, useBrands, useServices, useCategories } fr
 
 
 import ProductCard from "@/components/ProductCard";
+import { SafeImage, ProductGridSkeleton, ProductCardSkeleton } from "@/components/loading";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/products";
 import { useToast } from "@/hooks/use-toast";
@@ -75,6 +76,17 @@ const FALLBACK_TESTIMONIALS = [
 const ICON_MAP = {
   'Truck': Truck, 'Lock': Lock, 'RotateCcw': RotateCcw, 'Headphones': Headphones, 'Award': Award, 'Star': Star
 };
+
+// Shared CTA button styles — reuse instead of one-off treatments to keep a single button system.
+const CTA_BASE = "inline-flex items-center justify-center gap-3 text-xs sm:text-sm font-label font-bold tracking-[0.1em] rounded-full transition-all duration-300";
+const CTA_SIZE_LG = "px-8 py-4 sm:px-10 sm:py-5";
+const CTA_SIZE_MD = "px-6 py-3.5";
+const ctaPrimary = (size: "lg" | "md" = "lg") =>
+  cn(CTA_BASE, size === "lg" ? CTA_SIZE_LG : CTA_SIZE_MD, "bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:bg-white hover:text-black");
+const ctaOutline = (size: "lg" | "md" = "md") =>
+  cn(CTA_BASE, size === "lg" ? CTA_SIZE_LG : CTA_SIZE_MD, "border border-primary/30 text-primary hover:border-primary hover:bg-primary hover:text-primary-foreground shadow-sm hover:shadow-md");
+const ctaGhost = (size: "lg" | "md" = "lg") =>
+  cn(CTA_BASE, size === "lg" ? CTA_SIZE_LG : CTA_SIZE_MD, "bg-white/5 backdrop-blur-xl text-white border border-white/20 hover:border-white hover:bg-white hover:text-black shadow-lg");
 
 export default function HomePage() {
   const { toast } = useToast();
@@ -202,19 +214,6 @@ export default function HomePage() {
 
   const newArrivals = products.slice(0, 10);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-primary tracking-widest uppercase text-xs font-bold">
-            Montclair Horology
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-background text-foreground overflow-hidden selection:bg-primary/30 selection:text-primary">
       {/* Hero Section */}
@@ -249,34 +248,38 @@ export default function HomePage() {
               >
                 <div className="flex items-center gap-3 mb-6">
                   <span className="w-8 sm:w-12 h-px bg-primary/60" />
-                  <span className="text-[10px] sm:text-xs font-label tracking-[0.4em] uppercase font-bold text-primary drop-shadow-md">
+                  <span className="text-eyebrow sm:text-xs font-label tracking-[0.25em] font-bold text-primary drop-shadow-md">
                     Exquisite Horology
                   </span>
                 </div>
-                <h1 className="text-3xl xs:text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-heading text-white leading-[1.05] mb-8 drop-shadow-2xl">
-                  {slide.title.split(', ').map((part, i) => (
-                    <span key={i} className="block italic first:not-italic first:font-bold">
-                      {part}
-                    </span>
-                  ))}
-                </h1>
+                {(() => {
+                  const HeadingTag = index === currentSlide ? "h1" : "div";
+                  return (
+                    <HeadingTag
+                      aria-hidden={index !== currentSlide}
+                      className="text-3xl xs:text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-heading text-white leading-[1.05] mb-8 drop-shadow-2xl"
+                    >
+                      {slide.title.split(', ').map((part, i) => (
+                        <span key={i} className="block italic first:not-italic first:font-bold">
+                          {part}
+                        </span>
+                      ))}
+                    </HeadingTag>
+                  );
+                })()}
                 <p className="text-sm sm:text-lg lg:text-xl text-white/70 mb-8 sm:mb-10 font-light tracking-wide max-w-lg leading-relaxed">
                   {slide.subtitle}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <Link
-                    to="/collection"
-                    className="group inline-flex items-center justify-center gap-3 bg-primary text-primary-foreground px-8 py-4 sm:px-10 sm:py-5 text-xs sm:text-sm font-label font-bold tracking-[0.2em] uppercase rounded-full hover:bg-white hover:text-black transition-all duration-300 shadow-xl shadow-primary/20"
-                  >
+                  <Link to="/collection" className={cn("group", ctaPrimary("lg"))}>
                     {slide.cta1}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
                   </Link>
-                  <Link
-                    to="/about"
-                    className="inline-flex items-center justify-center bg-white/5 backdrop-blur-xl text-white border border-white/20 hover:border-white hover:bg-white hover:text-black px-8 py-4 sm:px-10 sm:py-5 text-xs sm:text-sm font-label font-bold tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-lg"
-                  >
-                    {slide.cta2}
-                  </Link>
+                  {slide.cta2 && (
+                    <Link to="/about" className={ctaGhost("lg")}>
+                      {slide.cta2}
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
@@ -298,7 +301,7 @@ export default function HomePage() {
       </section>
 
       <section className="pt-12 pb-6 sm:pt-32 sm:pb-12 container px-4 sm:px-6">
-        <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 sm:mb-16 lg:mb-20 gap-6 sm:gap-8">
+        <div className="relative flex flex-col lg:flex-row lg:justify-start items-start lg:items-end mb-12 sm:mb-16 lg:mb-20 gap-6 sm:gap-8 lg:gap-12">
 
           <div className="absolute -top-24 -left-20 w-72 h-72 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
@@ -310,30 +313,29 @@ export default function HomePage() {
           </div>
           <Link
             to="/collection"
-            className="group inline-flex items-center gap-3 border border-primary/30 hover:border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-3.5 text-xs sm:text-sm font-label font-bold tracking-[0.2em] uppercase rounded-full transition-all duration-300 self-start lg:self-auto shrink-0 shadow-sm hover:shadow-md"
+            className={cn("group self-start lg:self-end shrink-0", ctaOutline("md"), "uppercase tracking-[0.2em]")}
           >
             <span>View All Categories</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-6 md:grid-cols-5 gap-3 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6">
           {categories.map((cat, i) => (
             <Link
               key={i}
               to={cat.href}
               className={cn(
-                "group relative overflow-hidden bg-secondary rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500",
-                i === 4 ? "col-span-2 aspect-[2/1]" : "col-span-1 aspect-[3/4]",
-                "sm:aspect-[4/5]",
-                i < 3 ? "sm:col-span-2" : "sm:col-span-3",
-                "md:col-span-1"
+                "group relative overflow-hidden bg-secondary rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 aspect-[3/4] sm:aspect-[4/5]",
+                categories.length % 2 === 1 && i === categories.length - 1 && "col-span-2 aspect-[2/1] sm:aspect-[4/5] sm:col-span-1"
               )}
             >
-              <img
+              <SafeImage
                 src={cat.img}
                 alt={cat.name}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                rounded="none"
+                wrapperClassName="absolute inset-0"
+                className="transition-transform duration-1000 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
               <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-4 sm:left-6 lg:left-8 right-4 sm:right-6 lg:right-8 text-white translate-y-4 group-hover:translate-y-0 transition-all duration-500">
@@ -406,7 +408,7 @@ export default function HomePage() {
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id as any)}
                   className={cn(
-                    "flex items-center gap-2.5 px-8 py-4 text-[10px] font-label tracking-[0.2em] uppercase font-bold transition-all border rounded-full shrink-0",
+                    "flex items-center gap-2.5 px-8 py-4 text-eyebrow font-label tracking-[0.2em] uppercase font-bold transition-all border rounded-full shrink-0",
                     activeFilter === filter.id
                       ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
                       : "bg-background text-foreground border-border hover:border-primary/50"
@@ -419,17 +421,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-8 gap-y-8 sm:gap-y-16">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} showAddToCart />
-            ))}
-          </div>
+          {isLoading ? (
+            <ProductGridSkeleton count={8} />
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-8 gap-y-8 sm:gap-y-16">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} showAddToCart />
+              ))}
+            </div>
+          )}
 
           <div className="mt-24 text-center">
-            <Link
-              to="/collection"
-              className="inline-flex items-center gap-4 bg-foreground text-background px-12 py-6 text-xs sm:text-sm font-label font-bold tracking-[0.2em] uppercase hover:bg-primary hover:text-white transition-all rounded-full shadow-2xl"
-            >
+            <Link to="/collection" className={cn(ctaPrimary("lg"), "uppercase tracking-[0.2em] shadow-2xl")}>
               Discover New Collection
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -440,7 +443,7 @@ export default function HomePage() {
 
       <section className="pt-2 pb-12 sm:pt-4 sm:pb-24 px-4 sm:px-6">
         <div className="container p-0">
-          <div className="relative overflow-hidden bg-black text-white p-6 sm:p-12 lg:p-20 rounded-[2rem] sm:rounded-[3.5rem] group">
+          <div className="relative overflow-hidden bg-black text-white p-6 sm:p-12 lg:p-20 rounded-panel group">
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20 pointer-events-none" />
             <div className="absolute top-0 right-0 w-[60%] h-full bg-primary/5 -skew-x-12 translate-x-1/2 group-hover:translate-x-1/3 transition-transform duration-1000" />
 
@@ -466,7 +469,7 @@ export default function HomePage() {
 
                 <Link
                   to="/collection?category=luxury-watches"
-                  className="inline-block bg-primary text-white px-12 py-4 text-xs sm:text-sm font-label font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all shadow-2xl shadow-primary/40 rounded-full"
+                  className={cn(ctaPrimary("md"), "uppercase tracking-[0.2em] shadow-2xl shadow-primary/40")}
                 >
                   Access Collection
                 </Link>
@@ -539,23 +542,33 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="embla" ref={emblaRef}>
-            <div className="embla__container flex gap-4 sm:gap-6">
-              {newArrivals.map((product) => (
-                <div
-                  key={product.id}
-                  className="embla__slide flex-[0_0_80%] xs:flex-[0_0_60%] sm:flex-[0_0_40%] md:flex-[0_0_30%] lg:flex-[0_0_18.4%] min-w-0"
-                >
-                  <div className="relative group p-0.5">
-                    <ProductCard product={product} />
-                    <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-primary text-white text-[6px] sm:text-[9px] font-label font-bold tracking-[0.3em] uppercase px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-xl z-20 pointer-events-none">
-                      New Arrival
-                    </div>
-                  </div>
+          {isLoading ? (
+            <div className="flex gap-4 sm:gap-6 overflow-hidden">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex-[0_0_80%] xs:flex-[0_0_60%] sm:flex-[0_0_40%] md:flex-[0_0_30%] lg:flex-[0_0_18.4%] min-w-0 p-0.5">
+                  <ProductCardSkeleton />
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <div className="embla" ref={emblaRef}>
+              <div className="embla__container flex gap-4 sm:gap-6">
+                {newArrivals.map((product) => (
+                  <div
+                    key={product.id}
+                    className="embla__slide flex-[0_0_80%] xs:flex-[0_0_60%] sm:flex-[0_0_40%] md:flex-[0_0_30%] lg:flex-[0_0_18.4%] min-w-0"
+                  >
+                    <div className="relative group p-0.5">
+                      <ProductCard product={product} />
+                      <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-primary text-white text-[6px] sm:text-[9px] font-label font-bold tracking-[0.3em] uppercase px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-xl z-20 pointer-events-none">
+                        New Arrival
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -570,18 +583,18 @@ export default function HomePage() {
 
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((t, i) => (
               <div
                 key={i}
-                className="group relative p-[1px] flex flex-col items-center text-center hover:shadow-2xl hover:-translate-y-1 transition-all duration-700 rounded-[1.5rem] sm:rounded-[2.5rem]"
+                className="group relative p-[1px] flex flex-col items-center text-center hover:shadow-2xl hover:-translate-y-1 transition-all duration-700 rounded-panel"
               >
 
-                <div className="absolute inset-0 bg-zinc-200/60 rounded-[1.5rem] sm:rounded-[2.5rem] transition-all duration-700" />
-                <div className="absolute inset-0 bg-primary rounded-[1.5rem] sm:rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="absolute inset-0 bg-zinc-200/60 rounded-panel transition-all duration-700" />
+                <div className="absolute inset-0 bg-primary rounded-panel opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
 
-                <div className="relative bg-white w-full h-full p-6 md:p-8 lg:p-12 rounded-[1.44rem] sm:rounded-[2.44rem] flex flex-col items-center text-center z-10">
+                <div className="relative bg-white w-full h-full p-6 md:p-8 lg:p-12 rounded-panel flex flex-col items-center text-center z-10">
                   <span className="text-4xl sm:text-6xl font-serif text-primary/5 absolute top-6 left-6 italic pointer-events-none group-hover:text-primary/10 transition-colors">
                     &ldquo;
                   </span>
@@ -620,7 +633,7 @@ export default function HomePage() {
 
 
       <section className="container px-4 sm:px-6 mb-10">
-        <div className="relative overflow-hidden bg-zinc-950 text-white rounded-[2rem] sm:rounded-[3.5rem] border border-white/5 py-10 sm:py-16 px-4 sm:px-16 lg:px-24 group">
+        <div className="relative overflow-hidden bg-zinc-950 text-white rounded-panel border border-white/5 py-10 sm:py-16 px-4 sm:px-16 lg:px-24 group">
           {/* Elegant background texture & glows */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-10 pointer-events-none" />
           <div className="absolute top-0 right-0 w-[350px] h-[350px] bg-primary/10 rounded-full blur-[100px] pointer-events-none transition-all duration-[2000ms] group-hover:scale-110" />
@@ -659,11 +672,11 @@ export default function HomePage() {
 
             {/* Right Side: Form Card */}
             <div className="lg:col-span-5 w-full">
-              <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative">
+              <div className="bg-white/5 border border-white/10 rounded-panel p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative">
                 {/* Thin top gold border highlight */}
                 <div className="absolute top-0 inset-x-12 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
-                <h3 className="text-sm sm:text-base font-heading font-medium tracking-wide text-white mb-6 uppercase text-center">
+                <h3 className="text-sm sm:text-base font-heading font-medium tracking-wide text-white mb-6 text-center">
                   Subscribe to Updates
                 </h3>
 
@@ -687,7 +700,7 @@ export default function HomePage() {
                   <button
                     type="submit"
                     disabled={submittingNewsletter}
-                    className="w-full bg-primary text-primary-foreground hover:bg-white hover:text-black transition-all duration-300 py-4 px-6 rounded-full text-xs font-label font-bold tracking-[0.2em] uppercase shadow-lg shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={cn("w-full", ctaPrimary("md"), "uppercase tracking-[0.2em] shadow-lg shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed")}
                   >
                     {submittingNewsletter ? "Subscribing..." : "Subscribe"}
                   </button>

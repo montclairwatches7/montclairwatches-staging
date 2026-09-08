@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import {
   Package,
@@ -71,28 +72,20 @@ const statusConfig = {
 } as any;
 
 export default function OrderHistoryPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 4;
   const { toast } = useToast();
   const navigate = useNavigate();
   const { data: dbProducts = [] } = useProducts();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
-    try {
+  const { data: orders = [], isLoading: loading } = useQuery<any[]>({
+    queryKey: ["my-orders"],
+    queryFn: async () => {
       const { data } = await api.get("/orders/myorders");
-      setOrders(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data;
+    },
+  });
 
   const handleCancel = async (id: number) => {
     if (!window.confirm("Cancel this order?")) return;
@@ -101,7 +94,7 @@ export default function OrderHistoryPage() {
         reason: "User requested cancellation",
       });
       toast({ title: "Order Cancelled", description: "Success." });
-      fetchOrders();
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
     } catch (error: any) {
       toast({
         title: "Error",

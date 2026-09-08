@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useProducts } from "@/hooks/useProducts";
 import ProductCard from "@/components/ProductCard";
+import { ProductGridSkeleton } from "@/components/loading";
 import {
   Search,
   ChevronDown,
@@ -9,9 +10,11 @@ import {
   X,
   ArrowUpDown,
   RotateCcw,
+  AlertTriangle,
 } from "lucide-react";
 
 import { useCategories } from "@/hooks/useModules";
+import { cn } from "@/lib/utils";
 
 const sortOptions = [
   { label: "Featured", value: "popular" },
@@ -20,7 +23,7 @@ const sortOptions = [
 ];
 
 export default function CollectionPage() {
-  const { data: dbProducts = [], isLoading } = useProducts();
+  const { data: dbProducts = [], isLoading, isError, refetch, isFetching } = useProducts();
   const { data: categories = [] } = useCategories();
   const [params] = useSearchParams();
   const categoryParam = params.get("category");
@@ -242,11 +245,26 @@ export default function CollectionPage() {
           </div>
 
           {isLoading ? (
+            <ProductGridSkeleton count={9} dense className="p-3 sm:p-8 lg:p-10" />
+          ) : isError ? (
             <div className="flex flex-col items-center justify-center py-32 px-10 text-center animate-fade-in">
-              <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <div className="w-16 h-16 bg-red-50 flex items-center justify-center rounded-full mb-6">
+                <AlertTriangle size={24} className="text-red-500/70" />
+              </div>
               <h2 className="text-sm font-semibold mb-2 uppercase tracking-widest">
-                Loading Collections...
+                Unable To Load Products
               </h2>
+              <p className="text-xs text-muted-foreground max-w-[240px] leading-relaxed mb-6">
+                Something went wrong while fetching the collection. Please try again.
+              </p>
+              <button
+                onClick={() => refetch()}
+                disabled={isFetching}
+                className="inline-flex items-center gap-2 px-5 py-3 border border-[#EBEBEB] text-[#1A1714] text-[10px] font-bold tracking-widest uppercase rounded-xl hover:border-[#1A1714] hover:bg-[#F9F9F9] transition-all duration-300 active:scale-95 disabled:opacity-50 group"
+              >
+                <RotateCcw size={12} className={cn("transition-transform duration-300", isFetching ? "animate-spin" : "group-hover:rotate-[-45deg]")} />
+                <span>{isFetching ? "Retrying..." : "Retry"}</span>
+              </button>
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32 px-10 text-center animate-fade-in">

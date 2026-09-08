@@ -18,23 +18,6 @@ Route::get('/', function () {
     return response()->json(['status' => 'ok', 'message' => 'Montclair Luxury API is running.']);
 });
 
-// ─── Temporary Route to Run Migrations on Hostinger ──────────────────────────
-Route::get('/run-migrations', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Migrations ran successfully!',
-            'output' => \Illuminate\Support\Facades\Artisan::output()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ], 500);
-    }
-});
-
 // ─── Auth Routes ─────────────────────────────────────────────────────────────
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);

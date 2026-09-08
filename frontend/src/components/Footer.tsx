@@ -32,9 +32,9 @@ const CONTACT_INFO = [
     Icon: MapPin,
     text: (
       <>
-        410 rajhans tower , B/s krink tower mangarh chowk minibazar varachha
+        A-1003, Milan Height, B-S ABC Market, Mota Varachha,
         <br />
-        Surat Gujrat
+        Surat, Gujarat - 394101
       </>
     ),
   },
@@ -121,8 +121,8 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border py-4 flex flex-col sm:flex-row items-center justify-between gap-1.5">
-          <p className="text-[11px] text-muted-foreground">
-            © {new Date().getFullYear()} {APP_CONFIG.APP_NAME}. All rights
+          <p className="text-caption text-muted-foreground">
+            © {new Date().getFullYear()} LILAVATI EXPORTS ({APP_CONFIG.APP_NAME}). All rights
             reserved.
           </p>
           <div className="flex gap-4">

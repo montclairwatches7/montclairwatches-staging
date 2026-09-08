@@ -1,4 +1,4 @@
-import { Truck, ShieldCheck, Globe, Clock } from "lucide-react";
+import { Truck, ShieldCheck, Globe, Clock, RotateCcw } from "lucide-react";
 
 export default function ShippingPage() {
   const policies = [
@@ -21,6 +21,11 @@ export default function ShippingPage() {
       icon: Truck,
       title: "Secure & Private Packaging",
       desc: "Our timepieces are shipped in plain, unmarked boxes with no external branding, ensuring your package arrives safely and privately."
+    },
+    {
+      icon: RotateCcw,
+      title: "Replacement Policy",
+      desc: "Products can be replaced within 3 days of delivery. Please ensure the item is unused, in its original packaging, and accompanied by proof of purchase."
     }
   ];
 

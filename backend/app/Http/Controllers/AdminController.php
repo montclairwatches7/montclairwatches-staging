@@ -10,6 +10,7 @@ use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
 {
@@ -46,7 +47,73 @@ class AdminController extends Controller
         return isset($data['secure_url']) ? $data['secure_url'] : null;
     }
 
+    /**
+     * Uploads multiple files to Cloudinary concurrently instead of one-by-one,
+     * since each upload is a blocking external HTTP round-trip.
+     */
+    private function uploadManyToCloudinary(array $filePaths)
+    {
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+
+        if (!$cloudName || !$apiKey || !$apiSecret) {
+            Log::warning('Cloudinary credentials missing in .env! Cannot upload product images.');
+            return array_fill(0, count($filePaths), null);
+        }
+
+        $multiHandle = curl_multi_init();
+        $handles = [];
+
+        foreach ($filePaths as $index => $filePath) {
+            $timestamp = time();
+            $signature = sha1("folder=montclair/products&timestamp=" . $timestamp . $apiSecret);
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, [
+                'file' => new \CURLFile($filePath),
+                'timestamp' => $timestamp,
+                'api_key' => $apiKey,
+                'signature' => $signature,
+                'folder' => 'montclair/products'
+            ]);
+
+            curl_multi_add_handle($multiHandle, $ch);
+            $handles[$index] = $ch;
+        }
+
+        $running = null;
+        do {
+            curl_multi_exec($multiHandle, $running);
+            curl_multi_select($multiHandle);
+        } while ($running > 0);
+
+        $urls = [];
+        foreach ($handles as $index => $ch) {
+            $response = curl_multi_getcontent($ch);
+            $data = json_decode($response, true);
+            $urls[$index] = isset($data['secure_url']) ? $data['secure_url'] : null;
+            curl_multi_remove_handle($multiHandle, $ch);
+            curl_close($ch);
+        }
+
+        curl_multi_close($multiHandle);
+
+        ksort($urls);
+        return array_values($urls);
+    }
+
     public function getDashboardStats()
+    {
+        return response()->json(Cache::remember('admin.dashboard_stats', 60, function () {
+            return $this->buildDashboardStats();
+        }));
+    }
+
+    private function buildDashboardStats()
     {
         $totalSales = Order::where('status', '!=', 'refunded')->sum('total_amount');
         $totalOrders = Order::count();
@@ -84,7 +151,7 @@ class AdminController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
-        return response()->json([
+        return [
             'totalSales' => (float) $totalSales,
             'totalOrders' => $totalOrders,
             'totalUsers' => $totalUsers,
@@ -94,7 +161,7 @@ class AdminController extends Controller
             'recentOrders' => $recentOrders,
             'topProducts' => $topProducts,
             'salesTrend' => $salesTrend
-        ]);
+        ];
     }
 
     public function getGraphStats(Request $request)
@@ -245,12 +312,20 @@ class AdminController extends Controller
 
         $orders = $query->orderBy('orders.created_at', 'desc')->get();
 
+        $statsRow = DB::table('orders')->selectRaw("
+            COUNT(*) as total,
+            SUM(status = 'pending') as pending,
+            SUM(status = 'processing') as processing,
+            SUM(status = 'cancelled') as cancelled,
+            SUM(status = 'returned') as returned
+        ")->first();
+
         $stats = [
-            'totalOrders' => Order::count(),
-            'pendingOrders' => Order::where('status', 'pending')->count(),
-            'processingOrders' => Order::where('status', 'processing')->count(),
-            'cancelledOrders' => Order::where('status', 'cancelled')->count(),
-            'returnedOrders' => Order::where('status', 'returned')->count(),
+            'totalOrders' => (int) $statsRow->total,
+            'pendingOrders' => (int) $statsRow->pending,
+            'processingOrders' => (int) $statsRow->processing,
+            'cancelledOrders' => (int) $statsRow->cancelled,
+            'returnedOrders' => (int) $statsRow->returned,
         ];
 
         return response()->json(['orders' => $orders, 'stats' => $stats]);
@@ -432,12 +507,8 @@ class AdminController extends Controller
         if ($request->hasFile('images')) {
             $files = $request->file('images');
             if (is_array($files)) {
-                foreach ($files as $file) {
-                    $url = $this->uploadToCloudinary($file->getRealPath());
-                    if ($url) {
-                        $imageUrls[] = $url;
-                    }
-                }
+                $paths = array_map(fn($file) => $file->getRealPath(), $files);
+                $imageUrls = array_values(array_filter($this->uploadManyToCloudinary($paths)));
             } else {
                 $url = $this->uploadToCloudinary($files->getRealPath());
                 if ($url) {
@@ -465,12 +536,8 @@ class AdminController extends Controller
             $files = $request->file('images');
             $imageUrls = [];
             if (is_array($files)) {
-                foreach ($files as $file) {
-                    $url = $this->uploadToCloudinary($file->getRealPath());
-                    if ($url) {
-                        $imageUrls[] = $url;
-                    }
-                }
+                $paths = array_map(fn($file) => $file->getRealPath(), $files);
+                $imageUrls = array_values(array_filter($this->uploadManyToCloudinary($paths)));
             } else {
                 $url = $this->uploadToCloudinary($files->getRealPath());
                 if ($url) {

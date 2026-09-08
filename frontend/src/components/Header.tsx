@@ -45,7 +45,7 @@ export default function Header() {
         <div className="container flex items-center justify-between h-16 sm:h-20">
           <div className="flex items-center gap-4 sm:gap-8">
             <Link to="/" className="flex items-center" onClick={() => setMobileOpen(false)}>
-              <img src={logo} alt="Montclair" className="h-11 sm:h-14 w-auto object-contain" />
+              <img src={logo} alt="Montclair" className="h-12 sm:h-16 w-auto object-contain" />
             </Link>
 
             <nav className="hidden lg:flex items-center gap-8">
