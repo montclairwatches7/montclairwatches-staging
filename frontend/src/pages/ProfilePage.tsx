@@ -22,8 +22,6 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [wishlist, setWishlist] = useState<any[]>([]);
-  const [addresses, setAddresses] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profileData, setProfileData] = useState({
@@ -39,28 +37,8 @@ export default function ProfilePage() {
         phone: user.phone || "",
         avatar: user.avatar || "",
       });
-      fetchAddresses();
-      fetchWishlist();
     }
-  }, [user]);
-
-  const fetchAddresses = async () => {
-    try {
-      const { data } = await api.get("/auth/addresses");
-      setAddresses(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchWishlist = async () => {
-    try {
-      const { data } = await api.get("/store/wishlist");
-      setWishlist(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  }, [user?.id]);
 
   const handleUpdateProfile = async (dataOverride?: any) => {
     setLoading(true);

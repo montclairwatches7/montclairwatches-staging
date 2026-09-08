@@ -108,14 +108,12 @@ class PaymentController extends Controller
             ]);
 
             // Insert Order Items
-            foreach ($cartItems as $item) {
-                OrderItem::create([
-                    'order_id' => $dbOrder->id,
-                    'product_id' => $item['productId'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                ]);
-            }
+            OrderItem::insert(array_map(fn($item) => [
+                'order_id' => $dbOrder->id,
+                'product_id' => $item['productId'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+            ], $cartItems));
 
             // Clear Cart
             CartItem::where('user_id', $request->user()->id)->delete();

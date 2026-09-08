@@ -5,6 +5,7 @@ import {
   MapPin,
   Send,
   Clock,
+  Building2,
 } from "lucide-react";
 import { FaInstagram, FaTwitter, FaFacebook } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
@@ -103,9 +104,15 @@ export default function ContactPage() {
             <div className="grid grid-cols-1 gap-5">
               {[
                 {
+                  icon: Building2,
+                  title: "Company Name",
+                  value: "LILAVATI EXPORTS",
+                  sub: "Luxury Timepieces",
+                },
+                {
                   icon: MapPin,
                   title: "Address",
-                  value: "410 rajhans tower , B/s krink tower mangarh chowk minibazar varachha Surat Gujrat",
+                  value: "A-1003, Milan Height, B-S ABC Market, Mota Varachha, Surat, Gujarat - 394101",
                   sub: "Open Daily: 10AM - 8PM",
                 },
                 {

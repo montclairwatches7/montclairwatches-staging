@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   X,
   Upload,
@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useCategories } from "@/hooks/useModules";
 import { Badge } from "@/components/ui/badge";
 import { Formik, Form } from "formik";
 import { productsSchema, validateWithZod } from "./validationSchemas";
@@ -28,22 +29,12 @@ export default function ProductModal({ product, onClose, onSuccess }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const { data: allCategories = [] } = useCategories();
+  const categories = useMemo(
+    () => allCategories.filter((c: any) => c.status === "active"),
+    [allCategories],
+  );
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data: response } = await api.get("/categories");
-        if (response?.success && Array.isArray(response.data)) {
-          setCategories(response.data.filter((c: any) => c.status === "active"));
-        }
-      } catch (err) {
-        console.error("Failed to fetch categories:", err);
-      }
-    };
-    fetchCategories();
-  }, []);
 
   useEffect(() => {
     if (product) {

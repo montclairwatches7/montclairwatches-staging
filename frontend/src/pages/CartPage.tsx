@@ -16,6 +16,7 @@ import { useStore } from "@/store/useStore";
 import { useState, useRef, useEffect } from "react";
 import api from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { PageLoader } from "@/components/loading";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, coupon: couponApplied, setCoupon: setCouponApplied } = useStore();
@@ -80,14 +81,7 @@ export default function CartPage() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4 bg-background">
-        <div className="text-center max-w-xs mx-auto animate-pulse flex flex-col items-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <h1 className="font-heading text-xl mt-4">Loading Logistics...</h1>
-        </div>
-      </div>
-    )
+    return <PageLoader className="min-h-[80vh]" />;
   }
 
   if (cartItems.length === 0) {

@@ -9,7 +9,15 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::where('status', 'active')->get();
+        $products = Product::where('status', 'active')
+            ->select([
+                'id', 'name', 'brand', 'price', 'originalPrice', 'image', 'images',
+                'category', 'rating', 'reviewCount', 'urlSlug', 'status', 'stock_quantity',
+                'caseSize', 'movement', 'waterResistance', 'powerReserve', 'caseMaterial',
+                'created_at', 'updated_at',
+            ])
+            ->get();
+
         return response()->json($products);
     }
 

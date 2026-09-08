@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import {
@@ -213,29 +213,31 @@ export default function AdminCoupons() {
     updateMutation.mutate({ id: coupon.id, data: { status: newStatus } });
   };
 
-  const filteredCoupons = coupons.filter((c) => {
-    const matchesSearch = c.code
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const isExpired = new Date(c.expiry_date) < new Date();
-    let currentStatus = c.status;
-    if (c.status !== "disabled" && isExpired) currentStatus = "inactive";
+  const filteredCoupons = useMemo(() => {
+    return coupons.filter((c) => {
+      const matchesSearch = c.code
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const isExpired = new Date(c.expiry_date) < new Date();
+      let currentStatus = c.status;
+      if (c.status !== "disabled" && isExpired) currentStatus = "inactive";
 
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "active" && currentStatus === "active") ||
-      (statusFilter === "inactive" && currentStatus === "inactive") ||
-      (statusFilter === "disabled" && currentStatus === "disabled");
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && currentStatus === "active") ||
+        (statusFilter === "inactive" && currentStatus === "inactive") ||
+        (statusFilter === "disabled" && currentStatus === "disabled");
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    });
+  }, [coupons, searchTerm, statusFilter]);
 
   const startIndex =
     currentPage === 1 ? 0 : firstPageLimit + (currentPage - 2) * nextPagesLimit;
   const currentLimit = currentPage === 1 ? firstPageLimit : nextPagesLimit;
-  const paginatedCoupons = filteredCoupons.slice(
-    startIndex,
-    startIndex + currentLimit,
+  const paginatedCoupons = useMemo(
+    () => filteredCoupons.slice(startIndex, startIndex + currentLimit),
+    [filteredCoupons, startIndex, currentLimit],
   );
   const totalPages =
     filteredCoupons.length <= firstPageLimit

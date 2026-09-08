@@ -36,8 +36,10 @@ export const useProducts = () => {
       const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
       return list.map(normalizeProduct);
     },
-    // Return empty array on error instead of crashing
-    placeholderData: [],
+    // Deliberately no placeholderData: it would make TanStack Query report
+    // status "success" from the very first render, permanently suppressing
+    // isLoading/isPending and preventing skeletons from ever showing.
+    // Callers already default with `data: products = []`.
   });
 };
 

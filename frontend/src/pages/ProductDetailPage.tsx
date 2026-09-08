@@ -18,50 +18,11 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const DESCRIPTION = `The Argos Olympus fuses refined style with mechanical heart — housed in a 316L stainless steel case, sporting a stunning textured dial, and a nine-row solid-link bracelet or an Italian Suede Leather Strap that radiates quiet luxury. Beneath the Double Dome Sapphire Crystal beats an automatic Caliber 2530 movement with a ~40-hour power reserve, small-seconds display and India's first power reserve indicator.`;
+const GENERIC_CARE = `Preserve your timepiece's finish by cleaning it occasionally with a soft, dry microfibre cloth. Wipe the case and bracelet or strap with a lightly dampened microfibre cloth after exposure to dust, salt air, or sweat.
 
-const STORY = `Born from the quiet discipline of luxury watch design, Olympus is our study in restraint. The brief was simple: build a daily companion that wears light, reads clean, and ages with dignity. We carved the case to catch light without shouting, gave the dial a calm geometry and a guilloche pattern to some, and balanced warmth and steel so it works from denim to dinner. The name nods to altitude — not mythology; because Olympus is about perspective: the clarity you get when noise drops away.`;
+Always ensure the crown is pushed in fully before cleaning to maintain water resistance.
 
-const WARRANTY_SECTIONS = [
-  {
-    heading: null,
-    body: `We have a 3-day return policy, which means you have 3 days after receiving your item to request a return & a refund.`,
-    link: { label: "Read More →", href: "https://www.argoswatch.in/pages/refund-policy" },
-  },
-  {
-    heading: "1. Warranty Coverage",
-    body: null,
-    bullets: [
-      "Lifetime Warranty Watches: All movement-related issues will be serviced free of cost. After the first year of ownership, a nominal one-way logistics charge will apply.",
-      "One-Year Warranty Watches: Both servicing and logistics are free of cost within the first year of ownership. After one year, standard servicing and logistics charges will apply.",
-    ],
-  },
-  {
-    heading: "2. Parts & Repairs",
-    body: null,
-    bullets: [
-      "Any damage or breakage to external parts (such as crystal, hands, case, crown, bracelet, strap, or clasp) is not covered under warranty.",
-      "In such cases, repair or replacement charges will apply, depending on the extent of damage.",
-    ],
-  },
-  {
-    heading: "3. Packaging & Transit",
-    body: null,
-    bullets: [
-      "Customers are required to send their watch in its original box or secure protective packaging to ensure safe transit.",
-      "The same box will be used to return the watch after servicing.",
-      "Argos cannot be held responsible for any transit damage caused due to inadequate or improper packaging.",
-    ],
-  },
-];
-
-const CARE = `Thanks to our expertise, your watch will require very little day-to-day care.
-
-You can help preserve its lustre by cleaning it occasionally with a microfibre cloth. You can also wipe the case and bracelet/strap from time to time using a wet microfibre cloth. After wearing your watch in a dusty area, it is important to clean it with fresh wet microfibre cloth to remove any salt and dirt deposits.
-
-Before cleaning your watch, always ensure that the crown is pushed down properly against the case to guarantee water resistance.
-
-Avoid using the date corrector between 10:00 and 2:00, as improper use during this time frame may damage the movement.`;
+Avoid adjusting the date between 9 PM and 3 AM, as the date-change mechanism may be engaged during this window and forcing it can damage the movement.`;
 
 function AccordionItem({
   title,
@@ -245,13 +206,17 @@ export default function ProductDetailPage() {
 
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
 
+  const description = product.fullDescription || product.shortDescription || product.description || null;
+  const boxContents = product.boxContents || product.whats_in_the_box || null;
+  const functions = product.functions || null;
+
   const ACCORDION_TABS = [
-    { key: "description", title: "Description" },
+    description && { key: "description", title: "Description" },
     { key: "specifications", title: "Specifications" },
-    { key: "story", title: `Story Behind The ${product.name?.split(" ").pop() || "Watch"}` },
+    (boxContents || functions) && { key: "details", title: "Functions & What's In The Box" },
     { key: "warranty", title: "Warranty & Returns" },
     { key: "care", title: "Care and Maintenance" },
-  ];
+  ].filter(Boolean) as { key: string; title: string }[];
 
   return (
     <div className="bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
@@ -275,6 +240,8 @@ export default function ProductDetailPage() {
               <img
                 src={images[imgIndex]}
                 alt={product.name}
+                fetchPriority="high"
+                decoding="async"
                 className="w-full h-full object-contain p-6 sm:p-10 transition-transform duration-700 group-hover:scale-[1.04]"
               />
               {product.mrp && (
@@ -323,7 +290,7 @@ export default function ProductDetailPage() {
                       : "border border-zinc-200 opacity-50 hover:opacity-80 hover:border-primary/50 hover:scale-[1.02]"
                   )}
                 >
-                  <img src={img} alt={`${product.name} view ${i + 1}`} className="w-full h-full object-contain" />
+                  <img src={img} alt={`${product.name} view ${i + 1}`} loading="lazy" decoding="async" className="w-full h-full object-contain" />
                 </button>
               ))}
             </div>
@@ -441,16 +408,16 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="border border-border rounded-2xl overflow-hidden">
-              {ACCORDION_TABS.map((tab) => (
+              {ACCORDION_TABS.map((tab, i) => (
                 <AccordionItem
                   key={tab.key}
                   title={tab.title}
-                  isOpen={openTab === tab.key}
+                  isOpen={i === 0 ? openTab === tab.key || !ACCORDION_TABS.some((t) => t.key === openTab) : openTab === tab.key}
                   onToggle={() => toggleTab(tab.key)}
                 >
-                  {tab.key === "description" && (
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {DESCRIPTION}
+                  {tab.key === "description" && description && (
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {description}
                     </p>
                   )}
 
@@ -458,47 +425,59 @@ export default function ProductDetailPage() {
                     <SpecTable specGroups={specGroups} />
                   )}
 
-                  {tab.key === "story" && (
-                    <p className="text-sm text-muted-foreground leading-relaxed italic">
-                      {STORY}
-                    </p>
+                  {tab.key === "details" && (
+                    <div className="space-y-6">
+                      {functions && (
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">Functions</h4>
+                          <ul className="space-y-2 pl-1">
+                            {functions.split("\n").filter(Boolean).map((line: string, i: number) => (
+                              <li key={i} className="flex gap-3 text-sm text-muted-foreground leading-relaxed">
+                                <span className="text-primary mt-1.5 shrink-0 text-[8px]">◆</span>
+                                <span>{line.replace(/^[•●◆*-]\s*/, "")}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {boxContents && (
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">What's In The Box</h4>
+                          <ul className="space-y-2 pl-1">
+                            {boxContents.split("\n").filter(Boolean).map((line: string, i: number) => (
+                              <li key={i} className="flex gap-3 text-sm text-muted-foreground leading-relaxed">
+                                <span className="text-primary mt-1.5 shrink-0 text-[8px]">◆</span>
+                                <span>{line.replace(/^[•●◆*-]\s*/, "")}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {tab.key === "warranty" && (
                     <div className="space-y-5">
-                      {WARRANTY_SECTIONS.map((sec, i) => (
-                        <div key={i} className="space-y-2">
-                          {sec.heading && (
-                            <h4 className="text-sm font-semibold">{sec.heading}</h4>
-                          )}
-                          {sec.body && (
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {sec.body}{" "}
-                              {sec.link && (
-                                <a href={sec.link.href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
-                                  {sec.link.label}
-                                </a>
-                              )}
-                            </p>
-                          )}
-                          {sec.bullets && (
-                            <ul className="space-y-2 pl-1">
-                              {sec.bullets.map((b, j) => (
-                                <li key={j} className="flex gap-3 text-sm text-muted-foreground leading-relaxed">
-                                  <span className="text-primary mt-1.5 shrink-0 text-[8px]">◆</span>
-                                  <span>{b}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ))}
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          Products can be replaced within 3 days of delivery if unused and in original packaging.{" "}
+                          <Link to="/shipping" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                            Read our full policy →
+                          </Link>
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold">Warranty Coverage</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {product.warranty || "Standard manufacturer warranty applies. Contact our support team for details specific to this timepiece."}
+                        </p>
+                      </div>
                     </div>
                   )}
 
                   {tab.key === "care" && (
                     <div className="space-y-3">
-                      {CARE.split("\n\n").filter(Boolean).map((para, i) => (
+                      {GENERIC_CARE.split("\n\n").filter(Boolean).map((para, i) => (
                         <p key={i} className="text-sm text-muted-foreground leading-relaxed">
                           {para}
                         </p>
@@ -528,6 +507,32 @@ export default function ProductDetailPage() {
           </section>
         )}
       </div>
+
+      {/* Mobile sticky add-to-cart bar */}
+      <div className="lg:hidden fixed bottom-14 sm:bottom-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 flex items-center gap-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold tabular-nums truncate">
+            ₹{Number(product.price).toLocaleString("en-IN")}
+          </p>
+          <p className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground truncate">
+            {product.stock_quantity > 0 ? "In Stock" : "Out of Stock"}
+          </p>
+        </div>
+        <button
+          onClick={handleAddToCart}
+          disabled={product.stock_quantity <= 0}
+          className={cn(
+            "flex items-center justify-center gap-2 px-6 py-3 rounded-full shrink-0",
+            "text-[10px] tracking-[0.18em] uppercase font-bold transition-all duration-300",
+            "bg-primary text-primary-foreground shadow-lg shadow-primary/20",
+            "active:scale-95",
+            "disabled:opacity-40 disabled:cursor-not-allowed"
+          )}
+        >
+          {product.stock_quantity > 0 ? "Add To Cart" : "Out Of Stock"}
+        </button>
+      </div>
+      <div className="lg:hidden h-16" />
     </div>
   );
 }

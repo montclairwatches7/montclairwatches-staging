@@ -8,13 +8,23 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "1.5rem",
+      padding: {
+        DEFAULT: "1rem",
+        xs: "1.25rem",
+        sm: "1.5rem",
+        lg: "2rem",
+      },
       screens: {
         "xs": "480px",
         "2xl": "1400px",
       },
     },
     extend: {
+      fontSize: {
+        // Shared scale — use these instead of arbitrary text-[Npx] values.
+        eyebrow: ["0.625rem", { lineHeight: "1.4" }], // 10px — short uppercase/tracked labels only, never reading copy
+        caption: ["0.75rem", { lineHeight: "1.5" }], // 12px — smallest size allowed for body/reading text
+      },
       fontFamily: {
         heading: ['Playfair Display', 'Georgia', 'serif'],
         headline: ['Noto Serif', 'serif'],
@@ -70,6 +80,7 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        panel: "2.5rem", // shared radius for large section/promo panels — use instead of one-off rounded-[Nrem] values
       },
       keyframes: {
         "accordion-down": {
